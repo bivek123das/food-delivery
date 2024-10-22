@@ -1,25 +1,81 @@
-import logo from './logo.svg';
-import './App.css';
+import React, { lazy, Suspense, useEffect, useState} from "react";
+import ReactDOM from "react-dom/client";
+import Header from "./components/Header";
+import Body from "./components/Body";
+import Contact from "./components/Contact";
+import Error from "./components/Error";
+import { createBrowserRouter, RouterProvider, Outlet } from "react-router-dom";
+import Restaurant from "./components/Restaurant";
+import UserContext from "./utils/UserContext";
+import { Provider } from "react-redux";
+import appStore from "./utils/appStore";
+import Cart from "./components/Cart";
 
-function App() {
-  return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
-  );
+
+
+
+
+const About = lazy(() => import("./components/About"));
+
+
+export const AppLayout = () => {
+
+  const [userName, setUserName] = useState();
+
+   useEffect(()=>{
+      const data = {
+        name: 'Bivek Das'
+      }
+      setUserName(data.name);
+    },[])
+
+     return (
+         <Provider store={appStore}>
+          <UserContext.Provider value={{loggedInUser : userName, setUserName}
+          }>
+         <div className="app">
+            <Header/>
+            <Outlet/>
+         </div>
+         </UserContext.Provider> 
+         </Provider>
+     )
 }
 
-export default App;
+const appRouter = createBrowserRouter([
+  {
+    path: "/",
+    element: <AppLayout />,
+    children: [
+      {
+        path: "/",
+        element: <Body />,
+      },
+      {
+        path: "/about",
+        element: (
+          <Suspense fallback={<h1>Loading....</h1>}>
+            <About />
+          </Suspense>
+        ),
+      },
+      {
+        path: "/contact",
+        element: <Contact />,
+      },
+      {
+        path: "/restaurant/:resId",
+        element: <Restaurant />,
+      },
+      {
+        path: "/cart",
+        element: <Cart />,
+      },
+    ],
+    errorElement: <Error />,
+  },
+]);
+
+export default appRouter;
+
+
